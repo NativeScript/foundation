@@ -38,7 +38,9 @@ export function view({
   return function (constructor: any) {
     Object.defineProperty(constructor, '_register', {
       value: () => {
+        //@ts-expect-error dynamically adding to globalThis
         globalThis[name] = constructor;
+        //@ts-expect-error dynamically adding to globalThis
         globalThis.registerElement(tagName, globalThis[name]);
       },
     });

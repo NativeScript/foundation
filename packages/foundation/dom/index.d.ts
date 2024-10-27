@@ -1,7 +1,9 @@
-import { ViewBase } from '../views/view/view-base.js';
-import { View } from '../views/view/view.js';
-import type { Slider } from '../views/slider/slider.js';
-import type { Progress } from '../views/progress/progress.js';
+import { ViewBase } from '../views/view/view-base.ts';
+import { View } from '../views/view/view.ts';
+import type { Slider } from '../views/slider/slider.ts';
+import type { Progress } from '../views/progress/progress.ts';
+import type { TextField } from '../views/text-field/text-field.ts';
+import type { Checkbox } from '../views/checkbox/checkbox.ts';
 
 declare global {
   // undom
@@ -31,7 +33,7 @@ declare global {
   };
 
   // Register your view here if needed, this is not required for JSX since JSX Intrinsic elements
-  // are registered separately in jsx/index.d
+  // are registered separately in jsx/index.d.ts
   interface HTMlButtonElement extends HTMLViewBaseElement {}
 
   var HTMlButtonElement: {
@@ -84,6 +86,18 @@ declare global {
   var HTMLProgressElement: {
     new (): HTMLProgressElement;
     prototype: HTMLProgressElement;
+  };
+
+  interface HTMLTextFieldElement extends TextField {}
+  var HTMLTextFieldElement: {
+    new (): HTMLTextFieldElement;
+    prototype: HTMLTextFieldElement;
+  };
+
+  interface HTMLCheckboxElement extends Checkbox {}
+  var HTMLCheckboxElement: {
+    new (): HTMLCheckboxElement;
+    prototype: HTMLCheckboxElement;
   };
 
   interface HTMLElementTagNameMap {

@@ -1,3 +1,4 @@
+// @ts-ignore
 import { createEnvironment } from '../undom-ng/src/undom-ng.js';
 const initDocument = (document: any) => {
   document.body = document.createElement('view');

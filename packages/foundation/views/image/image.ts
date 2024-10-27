@@ -46,6 +46,7 @@ export class Image extends ViewBase {
 
   private setImage(value: NSImage | null) {
     if (this.nativeView) {
+      // @ts-expect-error it can be null
       this.nativeView.image = value;
 
       if (value) {

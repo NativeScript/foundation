@@ -77,12 +77,14 @@ export class ToolbarItem extends ViewBase {
   public removeNativeChild(child: any): void {
     if (child.nodeName === 'IMAGE') {
       if (this.nativeView) {
+        // @ts-expect-error it can be null
         this.nativeView.image = null;
         if (this.onImageLoad) {
           child.removeEventListener('load', this.onImageLoad);
         }
       }
     } else if (this.nativeView) {
+      // @ts-expect-error it can be null
       this.nativeView.view = null;
     }
   }

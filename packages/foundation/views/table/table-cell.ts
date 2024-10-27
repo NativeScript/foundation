@@ -1,4 +1,5 @@
 import '@nativescript/macos-node-api';
+import { native } from '../decorators/native.js';
 import { view } from '../decorators/view.js';
 import { Image } from '../image/image.js';
 import { Text } from '../text/text.js';
@@ -18,7 +19,7 @@ export class TableCell extends ViewBase {
     return this.nativeView;
   }
 
-  public addNativeChild(child: Image | Text) {
+  public addNativeChild(child: Image | Text | TableCell) {
     if (child.nodeName === 'IMAGE') {
       this.nativeView!.imageView = child.nativeView! as NSImageView;
     } else if (child.nodeName === 'TEXT') {
@@ -28,12 +29,39 @@ export class TableCell extends ViewBase {
     this.nativeView!.addSubview(child.nativeView!);
   }
 
-  public removeNativeChild(child: Image | Text): void {
+  public removeNativeChild(child: Image | Text | TableCell): void {
     if (child.nodeName === 'IMAGE') {
+      // @ts-expect-error imageView is nullable
       this.nativeView.imageView = null;
     } else if (child.nodeName === 'TEXT') {
+      // @ts-expect-error textField is nullable
       this.nativeView.textField = null;
     }
+
     child.nativeView?.removeFromSuperview();
   }
+
+  getOwner(): any {
+    let node: any = this.parentNode;
+    while (node) {
+      if (node.nodeName !== 'TABLE-CELL') {
+        break;
+      }
+      node = node.parentNode as any;
+    }
+    return node;
+  }
+
+  @native({
+    setNative: (view: TableCell, key, value) => {
+      if (value) {
+        view.getOwner()?.selectCell?.(view);
+      } else {
+        if (view.getOwner()?.nativeView.selectedCell === view.nativeView) {
+          view.getOwner()?.selectCell(null);
+        }
+      }
+    },
+  })
+  declare selected: boolean;
 }

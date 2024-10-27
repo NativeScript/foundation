@@ -116,6 +116,7 @@ export class Window extends ViewBase {
   public removeNativeChild(child: ViewBase): void {
     if (this.nativeView) {
       if (child.nodeName === 'TOOLBAR') {
+        // @ts-expect-error it can be null
         this.nativeView.toolbar = null;
       } else {
         child.nativeView.removeFromSuperview();

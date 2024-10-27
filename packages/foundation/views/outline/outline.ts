@@ -79,7 +79,7 @@ export class Outline extends View {
     const outline = NSOutlineView.new();
 
     this.dataSource = OutlineViewDataSource.initWithOwner(new WeakRef(this));
-
+    // @ts-expect-error It's nullable
     outline.headerView = null;
     outline.indentationPerLevel = 10;
     outline.allowsColumnReordering = false;
@@ -121,9 +121,46 @@ export class Outline extends View {
   public addNativeChild(_child: any) {
     this.nativeView?.reloadData();
     this.nativeView?.expandItem(_child);
+    if (this.__pendingCellSelection) {
+      this.selectCell(this.__pendingCellSelection);
+      this.__pendingCellSelection = null;
+    }
   }
 
   public removeNativeChild(_child: any): void {
     this.nativeView?.reloadData();
+  }
+
+  private __pendingCellSelection: TableCell | null = null;
+
+  expandParentsOfItem(item: TableCell) {
+    while (item !== null && this.nativeView) {
+      const parent = this.nativeView.parentForItem(item);
+      if (!this.nativeView.isExpandable(parent)) {
+        break;
+      }
+      if (!this.nativeView.isItemExpanded(parent)) {
+        this.nativeView.expandItem(parent);
+      }
+      item = parent;
+    }
+  }
+
+  public selectCell(cell: TableCell) {
+    if (cell) {
+      this.__pendingCellSelection = cell;
+      if (cell.nativeView) {
+        let index = this.nativeView?.rowForItem(cell) || 0;
+        if (index < 0) {
+          this.expandParentsOfItem(cell);
+          index = this.nativeView?.rowForItem(cell) || 0;
+          if (index < 0) return;
+        }
+        this.nativeView?.selectRowIndexesByExtendingSelection(NSIndexSet.indexSetWithIndex(index), false);
+        this.__pendingCellSelection = null;
+      }
+    } else {
+      this.nativeView?.deselectAll(null);
+    }
   }
 }

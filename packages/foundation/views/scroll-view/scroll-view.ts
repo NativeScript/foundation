@@ -1,17 +1,10 @@
 import '@nativescript/macos-node-api';
 import { view } from '../decorators/view.js';
 import { View } from '../view/view.js';
+import type { YogaNodeLayout } from '../../layout/index.js';
 
 @NativeClass
-export class NSScrollViewAutoResizable extends NSScrollView {
-  override viewDidMoveToSuperview(): void {
-    if (!this.superview) {
-      return;
-    }
-
-    NSLayoutConstraint.activateConstraints([this.topAnchor.constraintEqualToAnchor(this.superview.topAnchor), this.bottomAnchor.constraintEqualToAnchor(this.superview.bottomAnchor), this.leadingAnchor.constraintEqualToAnchor(this.superview.leadingAnchor), this.trailingAnchor.constraintEqualToAnchor(this.superview.trailingAnchor)]);
-  }
-}
+export class NSScrollViewAutoResizable extends NSScrollView {}
 
 @view({
   name: 'HTMLScrollViewElement',
@@ -25,7 +18,7 @@ export class ScrollView extends View {
     this.nativeView.hasVerticalScroller = true;
     this.nativeView.hasHorizontalScroller = false;
     this.nativeView.drawsBackground = false;
-    this.nativeView.translatesAutoresizingMaskIntoConstraints = false;
+
     return this.nativeView;
   }
 
@@ -34,6 +27,12 @@ export class ScrollView extends View {
   }
 
   public override removeNativeChild(_child: any): void {
+    // @ts-expect-error documentView is nullable
     this.nativeView!.documentView = null;
+  }
+
+  applyLayout(parentLayout?: YogaNodeLayout): void {
+    super.applyLayout(parentLayout);
+    this.nativeView!.translatesAutoresizingMaskIntoConstraints = true;
   }
 }

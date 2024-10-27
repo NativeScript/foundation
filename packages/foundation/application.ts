@@ -16,11 +16,6 @@ class AppDelegate extends NSObject implements NSApplicationDelegate {
   isActive = true;
   static windowTitle: string;
   static ObjCProtocols = [NSApplicationDelegate];
-  static ObjCExposedMethods = {
-    openDocs: { returns: interop.types.void, params: [interop.types.id] },
-    openGithub: { returns: interop.types.void, params: [interop.types.id] },
-    openDiscord: { returns: interop.types.void, params: [interop.types.id] },
-  };
 
   applicationDidFinishLaunching(_notification: NSNotification) {
     NSApp.activateIgnoringOtherApps(false);
@@ -33,21 +28,9 @@ class AppDelegate extends NSObject implements NSApplicationDelegate {
   applicationWillTerminate(_notification: NSNotification): void {
     this.running = false;
   }
-
-  openDocs(_id: this) {
-    NSWorkspace.sharedWorkspace.openURL(NSURL.URLWithString('https://solidjs.com'));
-  }
-
-  openGithub(_id: this) {
-    NSWorkspace.sharedWorkspace.openURL(NSURL.URLWithString('https://github.com/solidjs/solid'));
-  }
-
-  openDiscord(_id: this) {
-    NSWorkspace.sharedWorkspace.openURL(NSURL.URLWithString('https://discord.com/invite/solidjs'));
-  }
 }
 
-function RunLoop() {
+export function RunLoop() {
   let delay = 2;
   let lastEventTime = 0;
   const loop = () => {
@@ -101,26 +84,7 @@ export class Application {
   }
 
   static createMenu() {
-    const menu = NSMenu.new();
-    menu.delegate = Application.delegate;
-    NSApp.mainMenu = menu;
-    const appMenuItem = NSMenuItem.alloc().initWithTitleActionKeyEquivalent('Solid macOS', '', '');
-    menu.addItem(appMenuItem);
-    const submenu = NSMenu.new();
-    appMenuItem.submenu = submenu;
-    submenu.addItem(NSMenuItem.alloc().initWithTitleActionKeyEquivalent('Quit', 'terminate:', 'q'));
-
-    const helpMenu = NSMenu.new();
-    helpMenu.delegate = Application.delegate;
-    NSApp.helpMenu = helpMenu;
-    const helpMenuItem = NSMenuItem.alloc().initWithTitleActionKeyEquivalent('Help', '', '');
-    menu.addItem(helpMenuItem);
-
-    const helpSubmenu = NSMenu.new();
-    helpMenuItem.submenu = helpSubmenu;
-    helpSubmenu.addItem(NSMenuItem.alloc().initWithTitleActionKeyEquivalent('Open Docs', 'openDocs', 'i'));
-    helpSubmenu.addItem(NSMenuItem.alloc().initWithTitleActionKeyEquivalent('Open Github', 'openGithub', 'g'));
-    helpSubmenu.addItem(NSMenuItem.alloc().initWithTitleActionKeyEquivalent('Discord', 'openDiscord', 'd'));
+    // apps can override this to create cusotm menus
   }
 }
 

@@ -111,6 +111,7 @@ export function BorderWidthSetNative(style: Style, key: string, value: any) {
   const nativeView = style.node.nativeView as NSView;
   nativeView.wantsLayer = true;
   nativeView.layer.borderWidth = value;
+  // @ts-expect-error dynamic access of setters
   Layout.Setters[key](style.node.yogaNode, value);
 }
 
