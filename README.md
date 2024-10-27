@@ -1,10 +1,3 @@
-# @nativescript/\* plugins
-
-```
-npm run setup
-npm start
-```
-
 - [@nativescript/foundation](packages/foundation/README.md)
 
 # How to use?
