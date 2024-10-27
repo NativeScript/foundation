@@ -1,0 +1,34 @@
+{
+  "name": "@nativescript/foundation",
+  "version": "0.0.1-alpha.6",
+  "description": "NativeScript Foundation for a vibrant JavaScript with native platforms ecosystem.",
+  "main": "index",
+  "types": "index.d.ts",
+  "type": "module",
+  "nativescript": {
+    "platforms": {
+      "macos": "0.0.1"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NativeScript/foundation.git"
+  },
+  "keywords": [
+    "NativeScript",
+    "JavaScript",
+    "TypeScript",
+    "macOS"
+  ],
+  "author": {
+    "name": "NativeScript OSS",
+    "email": "oss@nativescript.org"
+  },
+  "bugs": {
+    "url": "https://github.com/NativeScript/foundation/issues"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/NativeScript/foundation",
+  "readmeFilename": "README.md",
+  "bootstrapper": "@nativescript/plugin-seed"
+}

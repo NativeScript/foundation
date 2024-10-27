@@ -3,24 +3,19 @@
     "rootDir": ".",
     "sourceMap": true,
     "declaration": true,
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "noEmitHelpers": true,
+    "noEmitHelpers": false,
     "target": "ES2020",
-    "module": "ESNext",
+    "module": "NodeNext",
     "lib": ["ESNext", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "plugins": [
-      {
-        "transform": "@nativescript/webpack/dist/transformers/NativeClass",
-        "type": "raw"
-      }
-    ],
     "paths": {
-      "@demo/shared": ["tools/demo/index.ts"]
+      "@demo/shared": ["tools/demo/index.ts"],
+      "@nativescript/foundation": ["packages/foundation/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

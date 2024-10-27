@@ -1,0 +1,70 @@
+{
+  "name": "foundation",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "packages/foundation",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "options": {
+        "outputPath": "dist/packages/foundation",
+        "tsConfig": "packages/foundation/tsconfig.json",
+        "packageJson": "packages/foundation/package.json",
+        "main": "packages/foundation/index.ts",
+        "assets": [
+          "packages/foundation/*.md",
+          "packages/foundation/index.d.ts",
+          "LICENSE",
+          {
+            "glob": "**/*",
+            "input": "packages/foundation/platforms/",
+            "output": "./platforms/"
+          },
+          {
+            "glob": "**/*",
+            "input": "packages/foundation/undom-ng/",
+            "output": "./undom-ng/"
+          }
+        ],
+        "dependsOn": [
+          {
+            "target": "build.all",
+            "projects": "dependencies"
+          }
+        ]
+      }
+    },
+    "build.all": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["node tools/scripts/build-finish.ts foundation"],
+        "parallel": false
+      },
+      "outputs": ["{workspaceRoot}/dist/packages/foundation"],
+      "dependsOn": [
+        {
+          "target": "build.all",
+          "projects": "dependencies"
+        },
+        {
+          "target": "build",
+          "projects": "self"
+        }
+      ]
+    },
+    "focus": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["nx g @nativescript/plugin-tools:focus-packages foundation"],
+        "parallel": false
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:eslint",
+      "options": {
+        "lintFilePatterns": ["packages/foundation/**/*.ts"]
+      }
+    }
+  },
+  "tags": []
+}
