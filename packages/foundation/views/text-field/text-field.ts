@@ -1,5 +1,6 @@
 import '@nativescript/macos-node-api';
 import { Event } from '../../dom/dom-utils.js';
+import { Layout } from '../../layout/index.js';
 import { native } from '../decorators/native.js';
 import { view } from '../decorators/view.js';
 import { Text } from '../text/text.js';
@@ -38,16 +39,24 @@ export class NativeTextFieldDelegate extends NSObject implements NSTextFieldDele
   controlTextDidChange(obj: NSNotification): void {
     const owner = this._owner?.deref();
     if (owner) {
+      owner._defaultValueSet = true;
       owner.dispatchEvent(new TextChangeEvent(owner.nativeView!.stringValue));
+      owner.yogaNode.markDirty();
+      Layout.computeAndLayout(owner);
     }
   }
 
-  controlTextDidEndEditing(obj: NSNotification): void {
+  controlTextSubmit() {
     const owner = this._owner?.deref();
     if (owner) {
+      if (!owner.nativeView?.stringValue) return;
       owner.dispatchEvent(new TextSubmitEvent(owner.nativeView!.stringValue));
     }
   }
+
+  static ObjCExposedMethods = {
+    controlTextSubmit: { returns: interop.types.void, params: [] },
+  };
 }
 
 @view({
@@ -65,6 +74,8 @@ export class TextField extends Text {
     nativeView.stringValue = '';
     nativeView.focusRingType = NSFocusRingType.None;
     nativeView.usesSingleLineMode = true;
+    nativeView.target = this._delegate;
+    nativeView.action = 'controlTextSubmit';
     return nativeView;
   }
 
@@ -78,9 +89,34 @@ export class TextField extends Text {
   @native({
     setNative: (view: TextField, key, value) => {
       if (view.nativeView) {
+        view.nativeView.stringValue = value;
+      }
+      view._defaultValueSet = true;
+    },
+    shouldLayout: true,
+  })
+  declare value: string;
+
+  _defaultValueSet: boolean = false;
+
+  @native({
+    setNative: (view: TextField, key, value) => {
+      if (view._defaultValueSet) return;
+      if (view.nativeView && !view.nativeView.stringValue) {
+        view.nativeView.stringValue = value;
+      }
+    },
+    shouldLayout: true,
+  })
+  declare defaultValue: string;
+
+  @native({
+    setNative: (view: TextField, key, value) => {
+      if (view.nativeView) {
         view.nativeView.placeholderString = value;
       }
     },
+    shouldLayout: true,
   })
   declare placeholder: string | null;
 
@@ -99,6 +135,7 @@ export class TextField extends Text {
         view.nativeView.usesSingleLineMode = value;
       }
     },
+    shouldLayout: true,
   })
   declare multiline: boolean;
 

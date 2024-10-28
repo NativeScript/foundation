@@ -127,6 +127,10 @@ export class Outline extends View {
     }
   }
 
+  public connectedCallback(): void {
+    super.connectedCallback();
+  }
+
   public removeNativeChild(_child: any): void {
     this.nativeView?.reloadData();
   }

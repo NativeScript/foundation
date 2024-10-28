@@ -94,7 +94,10 @@ export class ViewBase extends HTMLElement {
           x: layout.left,
           // Reverse the origin so that view's are rendered from
           // the top left instead of default bottom right.
-          y: parentLayout ? Math.max(parentHeight - layout.top - height, 0) : layout.top,
+          y: layout.top,
+          // y: parentLayout
+          //   ? Math.max(parentHeight - layout.top - height, 0)
+          //   : layout.top,
         },
         size: {
           width,
@@ -339,11 +342,7 @@ export class ViewBase extends HTMLElement {
     }
     Layout.computeAndLayout(this._rootView);
     this._rootView = undefined;
-    Promise.resolve().then(() => {
-      if (!this.parentNode) {
-        this.disposeNativeView();
-      }
-    });
+    this.disposeNativeView();
   }
 
   setAttributeNS(_namespace: string | null, qualifiedName: string, value: string): void {

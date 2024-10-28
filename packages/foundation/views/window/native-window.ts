@@ -35,21 +35,34 @@ export class MainWindowController extends NSWindowController implements NSToolba
 export class NativeWindow extends NSWindow implements NSWindowDelegate {
   static ObjCProtocols = [NSWindowDelegate];
 
-  public appWindow?: Window;
+  public owner?: WeakRef<Window>;
 
   windowDidResize(_notification: NSNotification): void {
     const event = new WindowResizeEvent();
     event.initWindowEvent('resize', true, true, this.frame.size.width, this.frame.size.height);
-    this.appWindow?.dispatchEvent(event);
+    this.owner?.deref()?.dispatchEvent(event);
   }
 
   windowDidBecomeKey(_notification: NSNotification): void {
     const event = createEvent('focus');
-    this.appWindow?.dispatchEvent(event);
+    this.owner?.deref()?.dispatchEvent(event);
   }
 
   windowWillClose(_notification: NSNotification): void {
     const event = createEvent('close');
-    this.appWindow?.dispatchEvent(event);
+    const currentWindow = this.owner?.deref();
+    currentWindow?.dispatchEvent(event);
+    let window = null;
+    let currentNode: any = currentWindow?.parentNode;
+    while (window == null && currentNode !== null) {
+      if (currentNode.nodeName === 'WINDOW') {
+        window = currentNode.nativeView;
+        break;
+      }
+      currentNode = currentNode.parentNode;
+    }
+    if (window) {
+      window.makeKeyAndOrderFront(null);
+    }
   }
 }

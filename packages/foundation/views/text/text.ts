@@ -1,4 +1,4 @@
-import { Layout } from '../../layout/index.js';
+import { Layout, type YogaNodeLayout } from '../../layout/index.js';
 import type { NativePropertyConfig } from '../decorators/native.js';
 import { overrides } from '../decorators/overrides.js';
 import { view } from '../decorators/view.js';
@@ -60,6 +60,15 @@ export class Text extends TextBase {
     // nativeView.isSelectable = false;
     nativeView.drawsBackground = false;
     nativeView.isBordered = false;
+    nativeView.isBezeled = false;
+    nativeView.lineBreakMode = NSLineBreakMode.WordWrapping;
+  }
+
+  applyLayout(parentLayout?: YogaNodeLayout): void {
+    super.applyLayout(parentLayout);
+    if (this.nativeView) {
+      this.nativeView.translatesAutoresizingMaskIntoConstraints = true;
+    }
   }
 
   updateTextContent() {
