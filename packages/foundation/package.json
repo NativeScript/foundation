@@ -1,6 +1,6 @@
 {
   "name": "@nativescript/foundation",
-  "version": "0.0.1-alpha.10",
+  "version": "0.0.1-alpha.14",
   "description": "NativeScript Foundation for a vibrant JavaScript (with native platforms) ecosystem.",
   "main": "index",
   "types": "index.d.ts",

@@ -34,7 +34,6 @@ export class MainWindowController extends NSWindowController implements NSToolba
 @NativeClass
 export class NativeWindow extends NSWindow implements NSWindowDelegate {
   static ObjCProtocols = [NSWindowDelegate];
-
   public owner?: WeakRef<Window>;
 
   windowDidResize(_notification: NSNotification): void {
@@ -46,6 +45,12 @@ export class NativeWindow extends NSWindow implements NSWindowDelegate {
   windowDidBecomeKey(_notification: NSNotification): void {
     const event = createEvent('focus');
     this.owner?.deref()?.dispatchEvent(event);
+  }
+
+  windowDidBecomeMain(_notification: NSNotification): void {
+    if (!NSBundle.mainBundle?.objectForInfoDictionaryKey('NativeScriptApplication')) {
+      NSApp.stop(this.owner?.deref()?.nativeView);
+    }
   }
 
   windowWillClose(_notification: NSNotification): void {
@@ -61,8 +66,12 @@ export class NativeWindow extends NSWindow implements NSWindowDelegate {
       }
       currentNode = currentNode.parentNode;
     }
+    if (currentWindow?._isModal) {
+      NSApp.stopModal();
+      currentWindow._isModal = false;
+    }
     if (window) {
-      window.makeKeyAndOrderFront(null);
+      window.makeKeyAndOrderFront(NSApp);
     }
   }
 }

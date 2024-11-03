@@ -1,10 +1,13 @@
-import { ViewBase } from '../views/view/view-base.ts';
-import { View } from '../views/view/view.ts';
-import type { Slider } from '../views/slider/slider.ts';
-import type { Progress } from '../views/progress/progress.ts';
-import type { TextField } from '../views/text-field/text-field.ts';
-import type { Checkbox } from '../views/checkbox/checkbox.ts';
-import type { Window } from '../views/window/window.ts';
+import { ViewBase } from '../views/view/view-base.js';
+import { View } from '../views/view/view.js';
+import type { Slider } from '../views/slider/slider.js';
+import type { Progress } from '../views/progress/progress.js';
+import type { TextField } from '../views/text-field/text-field.js';
+import type { Checkbox } from '../views/checkbox/checkbox.js';
+import type { Window } from '../views/window/window.js';
+import type { Popover } from '../views/popover/popover.js';
+import type { Switch } from '../views/switch/switch.js';
+import type { DatePicker } from '../views/date-picker/date-picker.js';
 
 declare global {
   // undom
@@ -34,7 +37,7 @@ declare global {
   };
 
   // Register your view here if needed, this is not required for JSX since JSX Intrinsic elements
-  // are registered separately in jsx/index.d.ts
+  // are registered separately in jsx/index.d.js
   interface HTMlButtonElement extends HTMLViewBaseElement {}
 
   var HTMlButtonElement: {
@@ -106,6 +109,24 @@ declare global {
   var HTMLCheckboxElement: {
     new (): HTMLCheckboxElement;
     prototype: HTMLCheckboxElement;
+  };
+
+  interface HTMLPopoverElement extends Popover {}
+  var HTMLPopoverElement: {
+    new (): HTMLPopoverElement;
+    prototype: HTMLPopoverElement;
+  };
+
+  interface HTMLSwitchElement extends Switch {}
+  var HTMLSwitchElement: {
+    new (): HTMLSwitchElement;
+    prototype: HTMLSwitchElement;
+  };
+
+  interface HTMLDatePickerElement extends DatePicker {}
+  var HTMLDatePickerElement: {
+    new (): HTMLDatePickerElement;
+    prototype: HTMLDatePickerElement;
   };
 
   interface HTMLElementTagNameMap {

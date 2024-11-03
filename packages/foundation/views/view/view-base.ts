@@ -1,10 +1,13 @@
+// deno-lint-ignore-file ban-ts-comment
 import { MeasureMode } from 'yoga-layout/load';
 import { Layout, YogaNode, YogaNodeLayout } from '../../layout/index.js';
 import { CombinedStyle, Style } from '../../style/index.js';
 import { native, type NativePropertyConfig } from '../decorators/native.js';
 import { overrides } from '../decorators/overrides.js';
+import '../../dom/environment.js';
 
 export class ViewBase extends HTMLElement {
+  private _nativePropertyDefaults: Map<string, any> = new Map();
   static register() {
     //@ts-ignore
     if (this._register) {
@@ -89,12 +92,14 @@ export class ViewBase extends HTMLElement {
 
       (this.nativeView as NSView).translatesAutoresizingMaskIntoConstraints = false;
 
+      const isAbsolute = this.style.position === 'absolute';
+
       (this.nativeView as NSView).frame = {
         origin: {
           x: layout.left,
           // Reverse the origin so that view's are rendered from
           // the top left instead of default bottom right.
-          y: layout.top,
+          y: layout.top < 0 && !isAbsolute ? 0 : layout.top,
           // y: parentLayout
           //   ? Math.max(parentHeight - layout.top - height, 0)
           //   : layout.top,
@@ -143,7 +148,6 @@ export class ViewBase extends HTMLElement {
     if (node.nodeType === 1 && this.isEnabled && !this.isLeaf && (node as any).isEnabled && !(node as any).isRoot) {
       this._addYogaChild(node as any, !!child);
     }
-
     this.setRootView(node);
 
     node.connectedCallback?.();
@@ -152,7 +156,8 @@ export class ViewBase extends HTMLElement {
   }
 
   private setRootView(node: any) {
-    node._rootView = node.isRoot ? node : this._rootView || this;
+    node._rootView = node.isRoot || !node.parentNode ? node : node.parentNode._rootView;
+
     let child = node.firstChild;
     while (child) {
       if (child.nodeType == Node.ELEMENT_NODE) {
@@ -242,13 +247,12 @@ export class ViewBase extends HTMLElement {
   }
 
   removeChild<T extends Node>(child: T): T {
-    super.removeChild(child);
-
     if (child.nodeType == 1) {
       (child as any).shouldAttachToParentNativeView && this.removeNativeChild(child);
 
       child.disconnectedCallback?.();
     }
+    super.removeChild(child);
 
     return child;
   }
@@ -323,6 +327,24 @@ export class ViewBase extends HTMLElement {
     //@ts-ignore
     this.isConnected = false;
 
+    let parentHasUpdatesPaused = false;
+    this.pauseLayoutUpdates = true;
+    let current = this.parentNode;
+    // Find a parent that has updates paused.
+    // If such parent is found, we won't call layout updates
+    // from this node as we want to do a single layout pass once
+    // all nodes are loaded.
+    if (!this.isRoot) {
+      while (current) {
+        if (current.pauseLayoutUpdates) {
+          parentHasUpdatesPaused = true;
+          break;
+        }
+        // Break where a root is found.
+        current = current.isRoot ? null : current.parentNode;
+      }
+    }
+
     let childNode = this.firstChild;
     while (childNode) {
       if (childNode.nodeType === 1) {
@@ -340,24 +362,53 @@ export class ViewBase extends HTMLElement {
       this.yogaNode.free();
       this._yogaNode = undefined;
     }
-    Layout.computeAndLayout(this._rootView);
+
+    if (this.pauseLayoutUpdates) {
+      this.pauseLayoutUpdates = false;
+      // If parentHasUpdatesPaused is true, some parent has paused layout updates, so we don't need to layout now.
+      // the parent will do it eventually.
+      if (!parentHasUpdatesPaused) {
+        Layout.computeAndLayout(this._rootView);
+      }
+    }
+
     this._rootView = undefined;
     this.disposeNativeView();
   }
 
   setAttributeNS(_namespace: string | null, qualifiedName: string, value: string): void {
-    //@ts-ignore
-    this[qualifiedName] = value;
+    if (qualifiedName in this) {
+      //@ts-ignore
+      this[qualifiedName] = value;
+    } else {
+      super.setAttributeNS(_namespace, qualifiedName, value);
+    }
   }
 
   getAttributeNS(_namespace: string | null, qualifiedName: string): any {
-    //@ts-ignore
-    return this[qualifiedName];
+    if (qualifiedName in this) {
+      //@ts-ignore
+      return this[qualifiedName];
+    } else {
+      return super.getAttributeNS(_namespace, qualifiedName);
+    }
   }
 
   setNativeProperties() {
     if (this.nativeView) {
+      for (const [k, v] of this._nativePropertyDefaults) {
+        if (!this.pendingSetNative.has(k)) {
+          this.setAttribute(k, v);
+        }
+      }
       this.pendingSetNative.forEach((value) => value());
+
+      for (const [k, v] of this.style._nativeStyleDefaults) {
+        if (!this.style.pendingSetNative.has(k)) {
+          //@ts-ignore
+          this.style[k] = v;
+        }
+      }
       this.style.pendingSetNative.forEach((value) => value());
     }
   }

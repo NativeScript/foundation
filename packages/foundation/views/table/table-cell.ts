@@ -1,9 +1,17 @@
 import '@nativescript/macos-node-api';
+import { Event } from '../../dom/dom-utils.js';
 import { native } from '../decorators/native.js';
 import { view } from '../decorators/view.js';
 import { Image } from '../image/image.js';
 import { Text } from '../text/text.js';
 import { ViewBase } from '../view/view-base.js';
+
+export class TableCellSelectedEvent extends Event {
+  declare target: TableCell | null;
+  constructor(eventDict?: EventInit) {
+    super('selected', eventDict);
+  }
+}
 
 @view({
   name: 'HTMLTableCellElement',
@@ -64,4 +72,17 @@ export class TableCell extends ViewBase {
     },
   })
   declare selected: boolean;
+
+  @native({
+    setNative: (view: TableCell, key, value) => {
+      if (view.nativeView) {
+        view.nativeView!.identifier = value;
+      }
+    },
+  })
+  declare identifier: string;
+
+  dispatchSelectedEvent() {
+    this.dispatchEvent(new TableCellSelectedEvent());
+  }
 }

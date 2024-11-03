@@ -51,7 +51,8 @@ export class Text extends TextBase {
     this.nativeView = NSTextField.new();
     this.nativeCell = PaddingTextFieldCell.new();
     this.nativeView.cell = this.nativeCell;
-
+    this.nativeView.lineBreakStrategy = NSLineBreakStrategy.None;
+    this.nativeView.lineBreakMode = NSLineBreakMode.WordWrapping;
     return this.nativeView;
   }
 
@@ -61,7 +62,6 @@ export class Text extends TextBase {
     nativeView.drawsBackground = false;
     nativeView.isBordered = false;
     nativeView.isBezeled = false;
-    nativeView.lineBreakMode = NSLineBreakMode.WordWrapping;
   }
 
   applyLayout(parentLayout?: YogaNodeLayout): void {
@@ -76,11 +76,6 @@ export class Text extends TextBase {
       this.nativeView.stringValue = this.textContent || '';
       Layout.computeAndLayout(this);
     }
-  }
-
-  public connectedCallback(): void {
-    super.connectedCallback();
-    this.updateTextContent();
   }
 
   @overrides('padding')

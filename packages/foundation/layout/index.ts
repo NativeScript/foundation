@@ -1,4 +1,4 @@
-import { Align, Direction, Display, Edge, FlexDirection, Gutter, Justify, loadYoga, Node, Overflow, PositionType, Wrap } from 'yoga-layout/load';
+import { Align, Direction, Display, Edge, FlexDirection, Gutter, Justify, Node, Overflow, PositionType, Wrap, loadYoga } from 'yoga-layout/load';
 export const Yoga = await loadYoga();
 
 function createYogaNode() {
@@ -205,10 +205,10 @@ const ConvertToYogaValue = {
     switch (value) {
       case 'absolute':
         return PositionType.Absolute;
-      case 'relative':
-        return PositionType.Relative;
-      default:
+      case 'static':
         return PositionType.Static;
+      default:
+        return PositionType.Relative;
     }
   },
 

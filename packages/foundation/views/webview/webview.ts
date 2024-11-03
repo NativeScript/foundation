@@ -73,10 +73,7 @@ class WebViewDelegate extends NSObject implements WKUIDelegate, WKNavigationDele
       }
       decisionHandler(WKNavigationActionPolicy.Allow);
 
-      const url = navigationAction.request.URL.absoluteString;
-      if (owner.src === url) {
-        owner.dispatchEvent(new LoadStartedEvent(navigationAction.request.URL.absoluteString, navType));
-      }
+      owner.dispatchEvent(new LoadStartedEvent(navigationAction.request.URL.absoluteString, navType));
     }
   }
 
@@ -85,9 +82,7 @@ class WebViewDelegate extends NSObject implements WKUIDelegate, WKNavigationDele
     if (owner) {
       const src = owner.src;
       if (webView.URL) {
-        if (src === webView.URL.absoluteString) {
-          owner.dispatchEvent(new LoadFinishedEvent(src));
-        }
+        owner.dispatchEvent(new LoadFinishedEvent(src));
       }
     }
   }
@@ -119,7 +114,9 @@ export class WebView extends View {
 
   override applyLayout(parentLayout?: YogaNodeLayout): void {
     super.applyLayout(parentLayout);
-    this.nativeView!.translatesAutoresizingMaskIntoConstraints = true;
+    if (this.nativeView) {
+      this.nativeView.translatesAutoresizingMaskIntoConstraints = true;
+    }
   }
 
   loadURL(value: string | URL) {
@@ -136,7 +133,6 @@ export class WebView extends View {
 
   executeJavaScript(src: string) {
     this.nativeView?.evaluateJavaScriptCompletionHandler(src, (result, error) => {
-      console.log('evaluateJavaScript result:', result);
       if (error) {
         console.error(error);
       }

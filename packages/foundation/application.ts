@@ -3,12 +3,6 @@ import type { NativeWindow } from './views/window/native-window.js';
 import type { Window } from './views/window/window.js';
 objc.import('AppKit');
 
-let CustomAppDelegate: any;
-
-export function setCustomDelegate(customAppDelegate?: any) {
-  CustomAppDelegate = customAppDelegate;
-}
-
 @NativeClass
 class AppDelegate extends NSObject implements NSApplicationDelegate {
   window?: NativeWindow;
@@ -16,23 +10,46 @@ class AppDelegate extends NSObject implements NSApplicationDelegate {
   isActive = true;
   static windowTitle: string;
   static ObjCProtocols = [NSApplicationDelegate];
+  static ObjCExposedMethods = {
+    showMainWindow: { returns: interop.types.void, params: [interop.types.id] },
+    themeChanged: { returns: interop.types.void, params: [interop.types.id] },
+  };
 
   applicationDidFinishLaunching(_notification: NSNotification) {
-    NSApp.activateIgnoringOtherApps(false);
-    NSApp.stop(this);
     // Allow users to customize the app's Touch Bar items
     NSApplication.sharedApplication.isAutomaticCustomizeTouchBarMenuItemEnabled = true;
-    RunLoop();
+    NSDistributedNotificationCenter.defaultCenter.addObserverSelectorNameObject(this, 'themeChanged', 'AppleInterfaceThemeChangedNotification', null);
+    if (!NSBundle.mainBundle?.objectForInfoDictionaryKey('NativeScriptApplication')) {
+      NSApp.activateIgnoringOtherApps(false);
+      NSApp.stop(this);
+      RunLoop();
+    }
+  }
+
+  applicationShouldHandleReopenHasVisibleWindows(sender: NSApplication, hasVisibleWindows: boolean): boolean {
+    if (!hasVisibleWindows) {
+      (sender.windows.firstObject as NSWindow).makeKeyAndOrderFront(sender);
+    }
+    return true;
   }
 
   applicationWillTerminate(_notification: NSNotification): void {
     this.running = false;
   }
+
+  showMainWindow(_id: this) {
+    NativeScriptApplication.showMainWindow();
+  }
+
+  themeChanged(_id: this) {
+    console.log('themeChanged', NSApp.effectiveAppearance.name === 'NSAppearanceNameDarkAqua' ? 'dark' : 'light');
+  }
 }
 
-export function RunLoop() {
+function RunLoop() {
   let delay = 2;
   let lastEventTime = 0;
+
   const loop = () => {
     const event = NSApp.nextEventMatchingMaskUntilDateInModeDequeue(NSEventMask.Any, null, 'kCFRunLoopDefaultMode', true);
 
@@ -65,7 +82,6 @@ export class Application {
       throw new Error('document.body instance of NSView');
     }
     Application.rootView = document.body as unknown as HTMLViewElement;
-
     Application.rootView?.connectedCallback();
 
     if (NativeScriptApplication.window) {
@@ -75,7 +91,7 @@ export class Application {
     }
 
     Application.application = NSApplication.sharedApplication;
-    Application.delegate = typeof CustomAppDelegate !== 'undefined' ? CustomAppDelegate.new() : AppDelegate.new();
+    Application.delegate = AppDelegate.new();
     Application.delegate.window = NativeScriptApplication.window.nativeView;
     Application.createMenu();
     NSApp.delegate = Application.delegate;
@@ -84,7 +100,14 @@ export class Application {
   }
 
   static createMenu() {
-    // apps can override this to create cusotm menus
+    if (!Application.appMenu) {
+      const menu = NSMenu.new();
+      NSApp.mainMenu = menu;
+      Application.appMenu = menu;
+    }
+  }
+  static showMainWindow() {
+    // override
   }
 }
 

@@ -1,6 +1,6 @@
 // deno-lint-ignore-file ban-ts-comment
 import { FlexStyle, Layout } from '../layout/index.js';
-import { BackgroundColorStyle, BorderColorStyle, BorderRadiusStyle, BorderWidthStyle, ColorStyle, FontSizeStyle, ZIndexStyle, OpacityStyle, FontStyleStyle } from './properties.js';
+import { BackgroundColorStyle, BorderColorStyle, BorderRadiusStyle, BorderWidthStyle, ColorStyle, FontSizeStyle, FontStyleStyle, OpacityStyle, TextAlignStyle, ZIndexStyle } from './properties.js';
 import { colors } from './utils/color.js';
 
 export type StylePropertyConfig<T = any> = {
@@ -20,6 +20,9 @@ export type StylePropertyConfig<T = any> = {
  */
 export function style<T>(config: StylePropertyConfig<T>) {
   return function (_target: Style, property: string) {
+    if (config.defaultValue !== undefined) {
+      _target._nativeStyleDefaults.set(property, config.defaultValue);
+    }
     Object.defineProperty(_target, property, {
       get() {
         if (config.getNative && config.converter?.fromNative) {
@@ -79,7 +82,7 @@ export function flex() {
     },
     hasChanged: (oldValue, newValue) => oldValue !== newValue,
     converter: {
-      toNative: (key, value) => Layout.ConvertToYogaValue[key as unknown as keyof typeof Layout.ConvertToYogaValue](value as never),
+      toNative: (key, value) => Layout.ConvertToYogaValue[key as unknown as keyof typeof Layout.ConvertToYogaValue](value as any),
     },
   });
 }
@@ -96,6 +99,7 @@ export interface TextStyle extends ViewStyle {
   fontSize?: string | number;
   fontFamily?: string;
   fontStyle?: string;
+  textAlign?: 'center' | 'left' | 'right' | 'justified';
 }
 
 export interface CombinedStyle extends ViewStyle, TextStyle {}
@@ -105,7 +109,7 @@ export class Style extends Map {
    * Install a new style property.
    */
   static install = style;
-
+  _nativeStyleDefaults: Map<string, any> = new Map();
   pendingSetNative: Map<string, () => void> = new Map();
 
   constructor(public node: any) {
@@ -131,6 +135,9 @@ export class Style extends Map {
 
   @flex()
   declare alignContent: FlexStyle['alignContent'];
+
+  @flex()
+  declare position: FlexStyle['position'];
 
   @flex()
   declare alignItems: FlexStyle['alignItems'];
@@ -344,4 +351,7 @@ export class Style extends Map {
 
   @style(OpacityStyle)
   declare opacity: ViewStyle['opacity'];
+
+  @style(TextAlignStyle)
+  declare textAlign: TextStyle['textAlign'];
 }
