@@ -36,7 +36,7 @@ export class NativeTextFieldDelegate extends NSObject implements NSTextFieldDele
     return delegate;
   }
 
-  controlTextDidChange(obj: NSNotification): void {
+  controlTextDidChange(_obj: NSNotification): void {
     const owner = this._owner?.deref();
     if (owner) {
       owner._defaultValueSet = true;
@@ -68,7 +68,7 @@ export class TextField extends Text {
   _delegate?: NSTextFieldDelegate;
 
   public initNativeView(): NSTextField {
-    const nativeView = super.initNativeView();
+    const nativeView = super.initNativeView() as NSTextField;
     nativeView.delegate = NativeTextFieldDelegate.initWithOwner(new WeakRef(this));
     this._delegate = nativeView.delegate;
     nativeView.stringValue = '';
@@ -87,7 +87,7 @@ export class TextField extends Text {
   updateTextContent() {}
 
   @native({
-    setNative: (view: TextField, key, value) => {
+    setNative: (view: TextField, _key, value) => {
       if (view.nativeView) {
         view.nativeView.stringValue = value;
       }
@@ -100,7 +100,7 @@ export class TextField extends Text {
   _defaultValueSet: boolean = false;
 
   @native({
-    setNative: (view: TextField, key, value) => {
+    setNative: (view: TextField, _key, value) => {
       if (view._defaultValueSet) return;
       if (view.nativeView && !view.nativeView.stringValue) {
         view.nativeView.stringValue = value;
@@ -111,7 +111,7 @@ export class TextField extends Text {
   declare defaultValue: string;
 
   @native({
-    setNative: (view: TextField, key, value) => {
+    setNative: (view: TextField, _key, value) => {
       if (view.nativeView) {
         view.nativeView.placeholderString = value;
       }
@@ -121,7 +121,7 @@ export class TextField extends Text {
   declare placeholder: string | null;
 
   @native({
-    setNative: (view: TextField, key, value) => {
+    setNative: (view: TextField, _key, value) => {
       if (view.nativeView) {
         view.nativeView.isEditable = value;
       }
@@ -130,7 +130,7 @@ export class TextField extends Text {
   declare editable: boolean;
 
   @native({
-    setNative: (view: TextField, key, value) => {
+    setNative: (view: TextField, _key, value) => {
       if (view.nativeView) {
         view.nativeView.usesSingleLineMode = value;
       }

@@ -44,10 +44,10 @@ class PaddingTextFieldCell extends NSTextFieldCell {
   tagName: 'text',
 })
 export class Text extends TextBase {
-  declare nativeView?: NSTextField;
+  declare nativeView?: NSTextField | NSTextView;
   declare nativeCell?: PaddingTextFieldCell;
 
-  public initNativeView(): NSTextField {
+  public initNativeView(): NSTextField | NSTextView {
     this.nativeView = NSTextField.new();
     this.nativeCell = PaddingTextFieldCell.new();
     this.nativeView.cell = this.nativeCell;
@@ -70,10 +70,9 @@ export class Text extends TextBase {
       this.nativeView.translatesAutoresizingMaskIntoConstraints = true;
     }
   }
-
   updateTextContent() {
     if (this.nativeView) {
-      this.nativeView.stringValue = this.textContent || '';
+      (this.nativeView as NSTextField).stringValue = this.textContent || '';
       Layout.computeAndLayout(this);
     }
   }
