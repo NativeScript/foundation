@@ -41,8 +41,6 @@ export class NativeTextFieldDelegate extends NSObject implements NSTextFieldDele
     if (owner) {
       owner._defaultValueSet = true;
       owner.dispatchEvent(new TextChangeEvent(owner.nativeView!.stringValue));
-      owner.yogaNode.markDirty();
-      Layout.computeAndLayout(owner);
     }
   }
 
@@ -149,5 +147,6 @@ export class TextField extends Text {
 
   clear(): void {
     this.nativeView!.stringValue = '';
+    Layout.computeAndLayout(this);
   }
 }

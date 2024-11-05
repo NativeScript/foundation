@@ -1,4 +1,4 @@
-import { Align, Direction, Display, Edge, FlexDirection, Gutter, Justify, Node, Overflow, PositionType, Wrap, loadYoga } from 'yoga-layout/load';
+import { Align, Direction, Display, Edge, FlexDirection, Gutter, Justify, loadYoga, Node, Overflow, PositionType, Wrap } from 'yoga-layout/load';
 export const Yoga = await loadYoga();
 
 function createYogaNode() {
@@ -16,10 +16,11 @@ function computeAndLayout(node: any) {
 
   const rootView: HTMLViewElement = node._rootView || node;
 
-  if (rootView.pauseLayoutUpdates) return;
+  if (rootView.pauseLayoutUpdates) {
+    return;
+  }
 
   node.rootYogaNode?.calculateLayout(node.rootYogaNode.getWidth().value, node.rootYogaNode.getHeight().value, Yoga.DIRECTION_LTR);
-
   rootView.applyLayout();
 }
 
