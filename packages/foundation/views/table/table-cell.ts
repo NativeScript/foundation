@@ -19,7 +19,6 @@ export class TableCellSelectedEvent extends Event {
 })
 export class TableCell extends ViewBase {
   nativeView?: NSTableCellView = undefined;
-
   _isEnabled: boolean = false;
 
   public initNativeView(): NSTableCellView | undefined {
@@ -34,6 +33,7 @@ export class TableCell extends ViewBase {
       this.nativeView!.textField = child.nativeView! as NSTextField;
     }
 
+    // @ts-expect-error
     this.nativeView!.addSubview(child.nativeView!);
   }
 
