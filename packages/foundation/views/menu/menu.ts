@@ -46,6 +46,7 @@ export class Menu extends ViewBase {
   @native({
     setNative: (view: Menu, _key, value) => {
       NativeScriptApplication.createMenu();
+
       if (value) {
         if (!view.menuItem) {
           view.menuItem = NSMenuItem.alloc().initWithTitleActionKeyEquivalent(view.nativeView.title, '', '');
@@ -53,6 +54,8 @@ export class Menu extends ViewBase {
         view.menuItem.submenu = view.nativeView;
         NativeScriptApplication.appMenu.addItem(view.menuItem);
         view.menuItem.title = view.nativeView.title;
+
+        NativeScriptApplication.createStandardMenus();
       } else {
         if (view.menuItem) {
           NativeScriptApplication.appMenu.removeItem(view.menuItem);

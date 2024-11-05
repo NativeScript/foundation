@@ -76,6 +76,7 @@ export class Application {
   static window: Window;
   static appMenu: NSMenu;
   static ensure60FPS: boolean;
+  static initEditMenu: boolean;
 
   static launch() {
     if (!(document.body instanceof HTMLElement)) {
@@ -106,6 +107,11 @@ export class Application {
       Application.appMenu = menu;
     }
   }
+
+  static createStandardMenus() {
+    // override
+  }
+
   static showMainWindow() {
     // override
   }
