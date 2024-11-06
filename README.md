@@ -1,6 +1,6 @@
 ## @nativescript/foundation
 
-NativeScript Foundation for a vibrant JavaScript (_with native platforms_) ecosystem.
+NativeScript Foundation combines the best ideas from the web and native platforms.
 
 - [@nativescript/foundation](packages/foundation/README.md)
 
