@@ -14,6 +14,7 @@
         "assets": [
           "packages/foundation/*.md",
           "packages/foundation/index.d.ts",
+          "packages/foundation/dom/dom-types.d.ts",
           "packages/foundation/jsx/index.d.ts",
           "packages/foundation/flavors/**/*",
           "LICENSE",

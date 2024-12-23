@@ -1,5 +1,5 @@
-import { ViewBase } from '../views/view/view-base.js';
-import { View } from '../views/view/view.js';
+import type { ViewBase } from '../views/view/view-base.js';
+import type { View } from '../views/view/view.js';
 import type { Slider } from '../views/slider/slider.js';
 import type { Progress } from '../views/progress/progress.js';
 import type { TextField } from '../views/text-field/text-field.js';
