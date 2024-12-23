@@ -1,6 +1,6 @@
 import '@nativescript/macos-node-api';
 import { Layout } from '../layout/index.js';
-import type { Style, StylePropertyConfig } from './index.js';
+import type { Style, StylePropertyConfig, TextStyle } from './index.js';
 import { Color } from './utils/color.js';
 
 export function BackgroundColorNativeSet(style: Style, _key: string, value: CGColor) {
@@ -154,4 +154,65 @@ export function TextAlignSetNative(style: Style, key: string, value: any) {
 
 export const TextAlignStyle: StylePropertyConfig = {
   setNative: TextAlignSetNative,
+};
+
+export function FontWeightSetNative(style: Style, _key: string, value: TextStyle['fontWeight']) {
+  if (!style.node.nativeView) return;
+  const nativeView = style.node.nativeView as NSTextField;
+  switch (value) {
+    case '100':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightUltraLight);
+      break;
+    case '200':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightThin);
+      break;
+    case '300':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightLight);
+      break;
+    case '400':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightRegular);
+      break;
+    case '500':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightMedium);
+      break;
+    case '600':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightSemibold);
+      break;
+    case '700':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightBold);
+      break;
+    case '800':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightHeavy);
+      break;
+    case 'ultralight':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightUltraLight);
+      break;
+    case 'light':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightLight);
+      break;
+    case 'normal':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightRegular);
+      break;
+    case 'bold':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightBold);
+      break;
+    case 'medium':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightMedium);
+      break;
+    case 'semibold':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightSemibold);
+      break;
+    case 'extrabold':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightHeavy);
+      break;
+    case 'black':
+      nativeView.font = NSFont.systemFontOfSizeWeight(nativeView.font.pointSize, NSFontWeightBlack);
+      break;
+    default:
+      break;
+  }
+}
+
+export const FontWeightStyle = {
+  setNative: FontWeightSetNative,
 };

@@ -4,9 +4,33 @@ import { Layout, YogaNode, YogaNodeLayout } from '../../layout/index.js';
 import { CombinedStyle, Style } from '../../style/index.js';
 import { native, type NativePropertyConfig } from '../decorators/native.js';
 import { overrides } from '../decorators/overrides.js';
+import { Event } from '../../dom/dom-utils.js';
+
+export class LoadedEvent extends Event {
+  constructor(eventInitDict?: EventInit) {
+    super('loaded', eventInitDict);
+  }
+}
+
+export type Layout = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+export class LayoutEvent extends Event {
+  constructor(
+    public layout: Layout,
+    eventInitDict?: EventInit,
+  ) {
+    super('layout', eventInitDict);
+  }
+}
 
 export class ViewBase extends HTMLElement {
-  private _nativePropertyDefaults: Map<string, any> = new Map();
+  static _nativeProperties: Set<string> = new Set();
+  static _nativePropertyDefaults: Map<string, any> = new Map();
   static register() {
     //@ts-ignore
     if (this._register) {
@@ -80,11 +104,11 @@ export class ViewBase extends HTMLElement {
     return this.styleInternal;
   }
 
-  applyLayout(parentLayout?: YogaNodeLayout): void {
+  applyLayout(_parentLayout?: YogaNodeLayout): void {
     if (!this.isIncludedInLayout) return;
     const layout = this.yogaNode?.getComputedLayout();
     if (layout && this.nativeView) {
-      const parentHeight = parentLayout?.height || 0;
+      // const parentHeight = parentLayout?.height || 0;
 
       const width = isNaN(layout.width) ? 0 : layout.width;
       const height = isNaN(layout.height) ? 0 : layout.height;
@@ -93,7 +117,7 @@ export class ViewBase extends HTMLElement {
 
       const isAbsolute = this.style.position === 'absolute';
 
-      (this.nativeView as NSView).frame = {
+      const frame = {
         origin: {
           x: layout.left,
           // Reverse the origin so that view's are rendered from
@@ -108,6 +132,16 @@ export class ViewBase extends HTMLElement {
           height,
         },
       };
+      (this.nativeView as NSView).frame = frame;
+
+      this.dispatchEvent(
+        new LayoutEvent({
+          left: frame.origin.x,
+          top: frame.origin.y,
+          width: width,
+          height: height,
+        }),
+      );
 
       this.applyLayoutToChildern(layout);
     }
@@ -277,8 +311,7 @@ export class ViewBase extends HTMLElement {
     }
 
     if (!this.nativeView) {
-      const nativeView = this.initNativeView();
-      this.prepareNativeView(nativeView);
+      this.initNativeView();
     }
     let pausedUpdates = false;
     if (this._rootView) {
@@ -305,6 +338,10 @@ export class ViewBase extends HTMLElement {
       this.viewController = this.viewController || (this.parentNode as ViewBase).viewController;
       (this.parentNode as any).addNativeChild(this);
     }
+
+    this.prepareNativeView(this.nativeView);
+
+    this.dispatchEvent(new LoadedEvent());
 
     if (pausedUpdates && this._rootView?.pauseLayoutUpdates) {
       this._rootView.pauseLayoutUpdates = false;
@@ -352,16 +389,18 @@ export class ViewBase extends HTMLElement {
   }
 
   setAttributeNS(_namespace: string | null, qualifiedName: string, value: string): void {
-    if (qualifiedName in this) {
+    if ((this.constructor as any)._nativeProperties.has(qualifiedName)) {
       //@ts-ignore
       this[qualifiedName] = value;
     } else {
+      const oldValue = this.getAttributeNS(_namespace, qualifiedName);
       super.setAttributeNS(_namespace, qualifiedName, value);
+      this.propertyChangedCallback(qualifiedName, value, oldValue);
     }
   }
 
   getAttributeNS(_namespace: string | null, qualifiedName: string): any {
-    if (qualifiedName in this) {
+    if ((this.constructor as any)._nativeProperties.has(qualifiedName)) {
       //@ts-ignore
       return this[qualifiedName];
     } else {
@@ -371,7 +410,7 @@ export class ViewBase extends HTMLElement {
 
   setNativeProperties() {
     if (this.nativeView) {
-      for (const [k, v] of this._nativePropertyDefaults) {
+      for (const [k, v] of (this.constructor as any)._nativePropertyDefaults) {
         if (!this.pendingSetNative.has(k)) {
           this.setAttribute(k, v);
         }

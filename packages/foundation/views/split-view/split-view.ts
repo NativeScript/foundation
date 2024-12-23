@@ -1,6 +1,6 @@
 import { native } from '../decorators/native.js';
 import { view } from '../decorators/view.js';
-import { ViewBase } from '../view/view-base.js';
+import { LayoutEvent, ViewBase } from '../view/view-base.js';
 import type { ContentList } from './content-list.js';
 import type { SideBar } from './sidebar.js';
 import { SplitViewController } from './split-view-controller.js';
@@ -54,6 +54,15 @@ export default class SplitView extends ViewBase {
   override applyLayout(): void {
     if (this.nativeView && this.viewController?.view && this.parentNode?.nativeView) {
       this.viewController.view.frame = this.parentNode.nativeView.frame;
+      this.dispatchEvent(
+        new LayoutEvent({
+          left: this.viewController.view.frame.origin.x,
+          top: this.viewController.view.frame.origin.y,
+          width: this.viewController.view.frame.size.width,
+          height: this.viewController.view.frame.size.height,
+        }),
+      );
+
       if (!this.isPresented) {
         this.isPresented = true;
         this.presentViewController();

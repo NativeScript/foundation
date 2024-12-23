@@ -5,30 +5,43 @@ import { type TextStyle, ViewStyle } from '../style/index.ts';
 import type { ButtonClickEvent } from '../views/button/native-button.ts';
 import type { ColorChosenEvent } from '../views/coloropenbutton/native-coloropenbutton.ts';
 import type { ComboBoxChangeEvent } from '../views/combobox/native-combobox.ts';
+import type { DatePickerChangeEvent } from '../native/core/views/date-picker/date-picker.ts';
 import type { FileChosenEvent } from '../views/fileopenbutton/native-fileopenbutton.ts';
 import type { FileSaveEvent } from '../views/filesavebutton/native-filesavebutton.ts';
 import type { ImageErrorEvent, ImageLoadEvent, ImageStretch } from '../views/image/image.ts';
 import type { MenuItemClickEvent } from '../views/menu/menu-item.ts';
+import type { OutlineViewItemSelectedEvent } from '../native/core/views/outline/outline.ts';
 import type { ScrollChangeEvent } from '../views/scroll-view/scroll-view.ts';
 import type { SliderChangeEvent } from '../views/slider/slider.ts';
+import type { SwitchClickEvent } from '../native/core/views/switch/switch.ts';
 import type { TableCellSelectedEvent } from '../views/table/table-cell.ts';
 import type { TextChangeEvent, TextSubmitEvent } from '../views/text-field/text-field.ts';
 import type { ToolbarGroupSelectedEvent, ToolbarGroupSelectionMode } from '../views/toolbar/toolbar-group.ts';
 import type { ToolbarItemClickEvent } from '../views/toolbar/toolbar-item.ts';
-import type { LoadFinishedEvent, LoadStartedEvent } from '../views/webview/webview.ts';
+import type { MouseDownEvent, MouseDraggedEvent, MouseEnterEvent, MouseLeaveEvent, MouseMoveEvent, MouseUpEvent } from '../native/core/views/view/native-view.ts';
+import type { LayoutEvent, LoadedEvent } from '../native/core/views/view/view-base.ts';
+import type { LoadFinishedEvent, LoadStartedEvent, WebViewMessageEvent } from '../views/webview/webview.ts';
 import { WindowResizeEvent } from '../views/window/native-window.ts';
-import type { OutlineViewItemSelectedEvent } from '../views/outline/outline.ts';
-import type { SwitchClickEvent } from '../views/switch/switch.ts';
-import type { DatePickerChangeEvent } from '../views/date-picker/date-picker.ts';
 
-interface ViewAttributes {
+interface ViewBaseAttributes {
   ref?: unknown | ((e: unknown) => void);
-  style?: ViewStyle;
+  onLoaded?: (event: LoadedEvent) => void;
+  onLayout?: (event: LayoutEvent) => void;
   [name: string]: any;
-  enableSafeAreaPaddings?: boolean;
 }
 
-interface TextAttributes {
+interface ViewAttributes extends ViewBaseAttributes {
+  style?: ViewStyle;
+  enableSafeAreaPaddings?: boolean;
+  onMouseDown?: (event: MouseDownEvent) => void;
+  onMouseUp?: (event: MouseUpEvent) => void;
+  onMouseEnter?: (event: MouseEnterEvent) => void;
+  onMousLeave?: (event: MouseLeaveEvent) => void;
+  onMouseDragged?: (event: MouseDraggedEvent) => void;
+  onMouseMove?: (event: MouseMoveEvent) => void;
+}
+
+interface TextAttributes extends ViewBaseAttributes {
   ref?: unknown | ((e: unknown) => void);
   style?: TextStyle;
   [name: string]: any;
@@ -48,7 +61,9 @@ interface ButtonAttributes extends TextAttributes {
    * SF Symbol name
    */
   icon?: string;
+  image?: string;
   onClick?: (event: ButtonClickEvent) => void;
+  onMouseDown?: (event: MouseDownEvent) => void;
 }
 
 interface ColorOpenButtonAttributes extends ButtonAttributes {
@@ -112,12 +127,10 @@ interface SplitViewAttributes extends ViewAttributes {
   vertical?: boolean;
 }
 
-interface SplitViewItemAttributes {
-  ref?: unknown | ((e: unknown) => void);
+interface SplitViewItemAttributes extends ViewBaseAttributes {
   style?: ViewStyle;
   minWidth?: number;
   maxWidth?: number;
-  [name: string]: any;
 }
 
 interface WindowAttributes extends ViewAttributes {
@@ -136,10 +149,13 @@ interface WindowAttributes extends ViewAttributes {
 }
 
 interface WebviewAttributes extends ViewAttributes {
+  ref?: HTMLWebViewElement | ((e: HTMLWebViewElement) => void);
   src?: string | URL;
+  messagingEnabled?: boolean;
   debug?: boolean;
   onLoadStarted?: (event: LoadStartedEvent) => void;
   onLoadFinished?: (event: LoadFinishedEvent) => void;
+  onMessage?: (event: WebViewMessageEvent) => void;
 }
 
 interface ProgressAttributes extends ViewAttributes {
@@ -219,6 +235,7 @@ interface CheckboxAttributes extends ButtonAttributes {
 }
 
 interface MenuAttributes extends ViewAttributes {
+  ref: HTMLNSMenuElement | ((e: HTMLNSMenuElement) => void);
   title?: string;
   attachToMainMenu?: boolean;
 }

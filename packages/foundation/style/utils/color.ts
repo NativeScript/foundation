@@ -145,22 +145,37 @@ export const colors = {
   YellowGreen: 0xff9acd32,
 };
 
-function hexToRgb(hex: string) {
-  hex = hex.replace(/^#/, '');
-  if (hex.length === 3) {
-    hex = hex
-      .split('')
-      .map((h) => h + h)
-      .join('');
+const isValidHex = (hex: string) => /^#([A-Fa-f0-9]{3,4}){1,2}$/.test(hex);
+
+const getChunksFromString = (st: string, chunkSize: number) => st.match(new RegExp(`.{${chunkSize}}`, 'g'));
+
+const convertHexUnitTo256 = (hexStr: string) => parseInt(hexStr.repeat(2 / hexStr.length), 16);
+
+const getAlphafloat = (a: number, alpha: number) => {
+  if (typeof a !== 'undefined') {
+    return a / 255;
   }
-  if (hex.length === 6) {
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    return { r, g, b };
+  if (typeof alpha != 'number' || alpha < 0 || alpha > 1) {
+    return 1;
   }
-  throw new Error('Invalid hex color code');
-}
+  return alpha;
+};
+
+export const hexToRgb = (hex: string, alpha?: any) => {
+  if (!isValidHex(hex)) {
+    throw new Error('Invalid HEX');
+  }
+  const chunkSize = Math.floor((hex.length - 1) / 3);
+  const hexArr = getChunksFromString(hex.slice(1), chunkSize);
+  const [r, g, b, a] = hexArr!.map(convertHexUnitTo256);
+
+  return {
+    r,
+    g,
+    b,
+    a: getAlphafloat(a, alpha),
+  };
+};
 
 function rgbToRgb(rgb: string) {
   const rgba = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*(\d*\.?\d+)?\)/);
@@ -241,10 +256,13 @@ export class Color {
   private green: number = 0;
   private blue: number = 0;
   private alpha: number = 1;
+  private transparent: boolean = false;
 
   constructor(color: string | number) {
     if (typeof color === 'string') {
-      if (color.startsWith('#')) {
+      if (color === 'transparent') {
+        this.transparent = true;
+      } else if (color.startsWith('#')) {
         this.parseHexColor(color);
       } else if (color.startsWith('rgb')) {
         this.parseRgbColor(color);
@@ -329,7 +347,7 @@ export class Color {
   }
 
   public toNSColor() {
-    return NSColor.colorWithSRGBRedGreenBlueAlpha(this.red, this.green, this.blue, this.alpha);
+    return this.transparent ? NSColor.clearColor : NSColor.colorWithSRGBRedGreenBlueAlpha(this.red, this.green, this.blue, this.alpha);
   }
 
   public fromNSColor(color: NSColor) {

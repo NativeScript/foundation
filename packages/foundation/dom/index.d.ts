@@ -8,6 +8,8 @@ import type { Window } from '../views/window/window.js';
 import type { Popover } from '../views/popover/popover.js';
 import type { Switch } from '../views/switch/switch.js';
 import type { DatePicker } from '../views/date-picker/date-picker.js';
+import type { WebView } from '../views/webview/webview.js';
+import type { Menu } from '../views/menu/menu.js';
 
 declare global {
   // undom
@@ -135,9 +137,17 @@ declare global {
     prototype: HTMLDatePickerElement;
   };
 
+  interface HTMLNSMenuElement extends Menu {}
+  var HTMLContextMenuElement: {
+    new (): HTMLNSMenuElement;
+    prototype: HTMLNSMenuElement;
+  };
+
   interface HTMLElementTagNameMap {
     view: HTMLViewElement;
   }
+
+  interface HTMLWebViewElement extends WebView {}
 
   function registerElement(tagName: string, element: any): void;
   function createElement(tagName: string): Node;

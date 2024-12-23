@@ -18,20 +18,21 @@ console.log(`Building ${npmPackageName}...${publish ? 'and publishing.' : ''}`);
 
 function cleanPackage() {
   // helps remove unwanted properties which may be added by other tooling
-  // const packageJsonPath = path.resolve(rootDir, 'dist', 'packages', packageName, 'package.json');
-  // let packageJson = fs.readFileSync(packageJsonPath, { encoding: 'utf-8' });
-  // if (packageJson) {
-  //   packageJson = parseJson(packageJson);
-  //   // we don't need module or type properties at the moment
-  //   delete packageJson['module'];
-  //   delete packageJson['type'];
-  //   fs.writeFileSync(packageJsonPath, serializeJson(packageJson));
-  //   const angularNpmIgnorePath = path.resolve(rootDir, 'dist', 'packages', packageName, 'angular', '.npmignore');
-  //   // remove .npmignore as we don't need it in angular folder if found
-  //   if (fs.existsSync(angularNpmIgnorePath)) {
-  //     fs.unlinkSync(angularNpmIgnorePath);
-  //   }
-  // }
+  const packageJsonPath = path.resolve(rootDir, 'dist', 'packages', packageName, 'package.json');
+  let packageJson = fs.readFileSync(packageJsonPath, { encoding: 'utf-8' });
+  if (packageJson) {
+    packageJson = parseJson(packageJson);
+    // we don't need module or type properties at the moment
+    delete packageJson['module'];
+    delete packageJson['type'];
+    fs.writeFileSync(packageJsonPath, serializeJson(packageJson));
+
+    const angularNpmIgnorePath = path.resolve(rootDir, 'dist', 'packages', packageName, 'angular', '.npmignore');
+    // remove .npmignore as we don't need it in angular folder if found
+    if (fs.existsSync(angularNpmIgnorePath)) {
+      fs.unlinkSync(angularNpmIgnorePath);
+    }
+  }
 }
 
 function finishPreparation() {

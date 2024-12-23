@@ -1,5 +1,6 @@
 import '@nativescript/macos-node-api';
 import { Event } from '../../dom/dom-utils.js';
+import { MouseDownEvent } from '../view/native-view.js';
 import type { Button } from './button.js';
 
 export class ButtonClickEvent extends Event {
@@ -30,6 +31,19 @@ export class NativeButton extends NSButton {
     if (owner) {
       owner.dispatchEvent(new ButtonClickEvent(this.state === NSOnState));
     }
+  }
+
+  mouseDown(event: NSEvent): void {
+    this._owner?.deref()?.dispatchEvent(new MouseDownEvent(event));
+    this.clicked(this);
+  }
+
+  otherMouseDown(event: NSEvent): void {
+    this._owner?.deref()?.dispatchEvent(new MouseDownEvent(event));
+  }
+
+  rightMouseDown(event: NSEvent): void {
+    this._owner?.deref()?.dispatchEvent(new MouseDownEvent(event));
   }
 
   setTitle(title: string) {

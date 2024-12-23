@@ -33,6 +33,7 @@ export class Image extends ViewBase {
 
   public initNativeView(): NSImageView | undefined {
     this.nativeView = NSImageView.alloc().init();
+    this.nativeView.animates = true;
     return this.nativeView;
   }
 
@@ -51,14 +52,18 @@ export class Image extends ViewBase {
 
   @native({
     setNative(view: Image, _key, value) {
-      let img: NSImage;
-      if (typeof value === 'string' && value?.indexOf('http') > -1) {
-        img = NSImage.alloc().initWithContentsOfURL(NSURL.URLWithString(value));
-      } else {
-        img = NSImage.alloc().initWithContentsOfFile((value instanceof URL ? value.pathname : value).replace('file://', ''));
-      }
-
-      view.setImage(img);
+      setTimeout(() => {
+        let img: NSImage;
+        if (typeof value === 'string' && value?.indexOf('<svg') > -1) {
+          const svgData = NSString.stringWithCString(value).dataUsingEncoding(NSUTF8StringEncoding);
+          img = NSImage.alloc().initWithData(svgData);
+        } else if (typeof value === 'string' && (value?.indexOf('http') > -1 || value?.startsWith('data:'))) {
+          img = NSImage.alloc().initWithContentsOfURL(NSURL.URLWithString(value));
+        } else {
+          img = NSImage.alloc().initWithContentsOfFile((value instanceof URL ? value.pathname : value).replace('file://', ''));
+        }
+        view.setImage(img);
+      }, 150);
     },
   })
   declare src: string | URL;

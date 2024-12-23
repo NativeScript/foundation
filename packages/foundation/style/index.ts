@@ -1,6 +1,6 @@
 // deno-lint-ignore-file ban-ts-comment
 import { FlexStyle, Layout } from '../layout/index.js';
-import { BackgroundColorStyle, BorderColorStyle, BorderRadiusStyle, BorderWidthStyle, ColorStyle, FontSizeStyle, FontStyleStyle, OpacityStyle, TextAlignStyle, ZIndexStyle } from './properties.js';
+import { BackgroundColorStyle, BorderColorStyle, BorderRadiusStyle, BorderWidthStyle, ColorStyle, FontSizeStyle, FontStyleStyle, FontWeightStyle, OpacityStyle, TextAlignStyle, ZIndexStyle } from './properties.js';
 import { colors } from './utils/color.js';
 
 export type StylePropertyConfig<T = any> = {
@@ -100,6 +100,7 @@ export interface TextStyle extends ViewStyle {
   fontFamily?: string;
   fontStyle?: string;
   textAlign?: 'center' | 'left' | 'right' | 'justified';
+  fontWeight?: '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | 'ultralight' | 'light' | 'normal' | 'bold' | 'medium' | 'semibold' | 'extrabold' | 'black';
 }
 
 export interface CombinedStyle extends ViewStyle, TextStyle {}
@@ -354,4 +355,7 @@ export class Style extends Map {
 
   @style(TextAlignStyle)
   declare textAlign: TextStyle['textAlign'];
+
+  @style(FontWeightStyle)
+  declare fontWeight: TextStyle['fontWeight'];
 }

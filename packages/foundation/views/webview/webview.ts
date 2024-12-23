@@ -4,6 +4,7 @@ import { YogaNodeLayout } from '../../layout/index.js';
 import { native } from '../decorators/native.js';
 import { view } from '../decorators/view.js';
 import { View } from '../view/view.js';
+import { property } from '../decorators/property.js';
 
 objc.import('WebKit');
 
@@ -29,11 +30,48 @@ export class LoadFinishedEvent extends WebviewNavigationEvent {
   }
 }
 
+export class WebViewMessageEvent extends Event {
+  constructor(
+    public data: any,
+    eventDict?: EventInit,
+  ) {
+    super('message', eventDict);
+  }
+}
+
+const NSWebViewBridge = `(() => {
+  const listenerMap = new Map();
+  window.nsWebViewBridge = {
+    emit: function(type, data) {
+      window.webkit.messageHandlers.nsNativeBridge.postMessage(JSON.stringify({
+        type: type,
+        data: data
+      }));
+      window.dispatchEvent(new MessageEvent(type, { data: data }));
+    },
+    on: function(type, listener) {
+      const customListener = (event) => {
+        listener(event.data);
+      };
+      listenerMap.set(listener, customListener);
+      window.addEventListener(type, customListener);
+    },
+    off: function(type, listener) {
+      const customListener = listenerMap.get(listener);
+      if (customListener) {
+        window.removeEventListener(type, customListener);
+        listenerMap.delete(listener);
+      }
+    }
+  }
+})();
+`;
+
 type WebViewNavigationType = 'linkClicked' | 'formSubmitted' | 'backForward' | 'reload' | 'formResubmitted' | 'other' | undefined;
 
 @NativeClass
-class WebViewDelegate extends NSObject implements WKUIDelegate, WKNavigationDelegate {
-  static ObjCProtocols = [WKUIDelegate, WKNavigationDelegate];
+class WebViewDelegate extends NSObject implements WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler {
+  static ObjCProtocols = [WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler];
 
   declare _owner: WeakRef<WebView>;
   static initWithOwner(owner: WeakRef<WebView>) {
@@ -73,7 +111,10 @@ class WebViewDelegate extends NSObject implements WKUIDelegate, WKNavigationDele
       }
       decisionHandler(WKNavigationActionPolicy.Allow);
 
-      owner.dispatchEvent(new LoadStartedEvent(navigationAction.request.URL.absoluteString, navType));
+      const url = navigationAction.request.URL.absoluteString;
+      if (owner.src === url) {
+        owner.dispatchEvent(new LoadStartedEvent(navigationAction.request.URL.absoluteString, navType));
+      }
     }
   }
 
@@ -82,14 +123,41 @@ class WebViewDelegate extends NSObject implements WKUIDelegate, WKNavigationDele
     if (owner) {
       const src = owner.src;
       if (webView.URL) {
-        owner.dispatchEvent(new LoadFinishedEvent(src));
+        if (src === webView.URL.absoluteString) {
+          owner.dispatchEvent(new LoadFinishedEvent(src));
+        }
       }
+    }
+  }
+
+  userContentControllerDidReceiveScriptMessage(userContentController: WKUserContentController, message: WKScriptMessage): void {
+    if (message.name === 'nsNativeBridge') {
+      const owner = this._owner?.deref();
+      if (owner) {
+        owner.dispatchEvent(new WebViewMessageEvent(JSON.parse(message.body)));
+      }
+    }
+  }
+
+  attachMessageHandler() {
+    const owner = this._owner?.deref();
+    if (owner) {
+      owner.postMessageScript = WKUserScript.alloc().initWithSourceInjectionTimeForMainFrameOnly(NSWebViewBridge, WKUserScriptInjectionTime.Start, true);
+      owner.nativeView?.configuration.userContentController.addUserScript(owner.postMessageScript);
+      owner.nativeView?.configuration.userContentController.addScriptMessageHandlerName(this, 'nsNativeBridge');
+    }
+  }
+
+  detachMessageHandler() {
+    const owner = this._owner?.deref();
+    if (owner) {
+      owner.nativeView?.configuration.userContentController.removeScriptMessageHandlerForName('nsNativeBridge');
     }
   }
 }
 
 @view({
-  name: 'HTMLWebviewElement',
+  name: 'HTMLWebViewElement',
   tagName: 'webview',
 })
 export class WebView extends View {
@@ -99,17 +167,27 @@ export class WebView extends View {
 
   delegate!: WebViewDelegate;
 
+  postMessageScript?: WKUserScript;
+
   override nativeView?: WKWebView = undefined;
 
   public override initNativeView(): WKWebView | undefined {
     const config = WKWebViewConfiguration.new();
+    config.userContentController = WKUserContentController.new();
     this.nativeView = WKWebView.alloc().initWithFrameConfiguration(CGRectZero, config);
+
     this.nativeView.setValueForKey(false, 'drawsBackground');
     this.delegate = WebViewDelegate.initWithOwner(new WeakRef(this));
     this.nativeView.UIDelegate = this.delegate;
     this.nativeView.navigationDelegate = this.delegate;
     this.nativeView.configuration.preferences.setValueForKey(true, 'allowFileAccessFromFileURLs');
     return this.nativeView;
+  }
+
+  public prepareNativeView(_nativeView: any): void {
+    if (this.messagingEnabled !== false) {
+      this.delegate.attachMessageHandler();
+    }
   }
 
   override applyLayout(parentLayout?: YogaNodeLayout): void {
@@ -132,11 +210,19 @@ export class WebView extends View {
   }
 
   executeJavaScript(src: string) {
-    this.nativeView?.evaluateJavaScriptCompletionHandler(src, (result, error) => {
+    this.nativeView?.evaluateJavaScriptCompletionHandler(src, (_result, error) => {
       if (error) {
         console.error(error);
       }
     });
+  }
+
+  sendEvent(type: string, data: any) {
+    this.executeJavaScript(`window.dispatchEvent(new MessageEvent("${type}", { data: ${JSON.stringify(data)} }))`);
+  }
+
+  postMessage(data: any) {
+    this.executeJavaScript(`window.dispatchEvent(new MessageEvent('message', { data: ${JSON.stringify(data)} }))`);
   }
 
   @native({
@@ -154,4 +240,23 @@ export class WebView extends View {
     },
   })
   declare debug: boolean;
+
+  public disposeNativeView(): void {
+    if (this.messagingEnabled) {
+      this.delegate.detachMessageHandler();
+    }
+
+    this.nativeView = undefined;
+  }
+
+  @property({
+    onChange(newValue: any, oldValue: any) {
+      if (newValue) {
+        this.delegate?.attachMessageHandler();
+      } else {
+        this.delegate?.detachMessageHandler();
+      }
+    },
+  })
+  declare messagingEnabled: boolean;
 }
