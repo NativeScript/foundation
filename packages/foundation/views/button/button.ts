@@ -37,7 +37,6 @@ export class Button extends TextBase {
   public override prepareNativeView(nativeView: NativeButton): void {
     nativeView.target = this.nativeView;
     nativeView.action = 'clicked';
-    nativeView.bezelStyle = NSBezelStyle.Automatic;
   }
 
   override updateTextContent() {
@@ -63,7 +62,6 @@ export class Button extends TextBase {
     if (this.nativeView) {
       const nativeValue = !value ? undefined : new Color(value).toNSColor();
       this.nativeView.bezelColor = nativeValue!;
-
       if (this.nativeView.bezelStyle === NSBezelStyle.TexturedSquare || this.nativeView.bezelStyle === NSBezelStyle.TexturedRounded) {
         this.nativeView.wantsLayer = true;
         this.nativeView.layer.backgroundColor = nativeValue?.CGColor as any;
