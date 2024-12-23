@@ -137,6 +137,7 @@ interface WindowAttributes extends ViewAttributes {
 
 interface WebviewAttributes extends ViewAttributes {
   src?: string | URL;
+  debug?: boolean;
   onLoadStarted?: (event: LoadStartedEvent) => void;
   onLoadFinished?: (event: LoadFinishedEvent) => void;
 }
